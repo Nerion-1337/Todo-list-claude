@@ -216,6 +216,456 @@ body {
 .empty-state p:last-child {
   font-size: 14px;
 }
+
+/* Ajoutez ces styles à votre App.css existant */
+
+/* Header buttons */
+.header-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.completed-btn {
+  background: white;
+  color: #10b981;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.completed-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Task item modifications */
+.task-item {
+  cursor: grab;
+  position: relative;
+}
+
+.task-item:active {
+  cursor: grabbing;
+}
+
+.task-item.drag-over {
+  border-color: #5568d3;
+  background: #e3f2fd;
+}
+
+/* Tâche verrouillée - fond orange/ambre */
+.task-item.locked {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left: 5px solid #f59e0b;
+  cursor: not-allowed;
+}
+
+.task-item.locked:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Drag handle */
+.drag-handle {
+  font-size: 20px;
+  color: #cbd5e0;
+  cursor: grab;
+  padding: 4px;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Task meta info */
+.task-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: #718096;
+  margin-left: 12px;
+}
+
+/* COUNTDOWN DISPLAY - Plus visible et avec secondes */
+.countdown-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #dc2626;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+  min-width: 180px;
+  justify-content: center;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(220, 38, 38, 0.6);
+  }
+}
+
+.countdown-display.expired {
+  background: #7f1d1d;
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%,
+  50%,
+  100% {
+    opacity: 1;
+  }
+  25%,
+  75% {
+    opacity: 0.6;
+  }
+}
+
+.countdown-icon {
+  font-size: 20px;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.countdown-time {
+  font-family: "Courier New", monospace;
+  letter-spacing: 1px;
+}
+
+.remaining-time {
+  font-size: 11px;
+  color: #f59e0b;
+  font-weight: 600;
+  background: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Duration input */
+.duration-input {
+  width: 70px;
+  padding: 6px 8px;
+  border: 2px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.duration-input:focus {
+  border-color: #667eea;
+}
+
+.duration-input:disabled {
+  background: #f7fafc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Lock button */
+.lock-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.lock-btn:hover {
+  background: #fef3c7;
+}
+
+.lock-btn.locked {
+  background: #fbbf24;
+}
+
+/* Complete button */
+.complete-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  color: #10b981;
+  font-weight: bold;
+}
+
+.complete-btn:hover {
+  background: #d1fae5;
+}
+
+/* Complete confirmation */
+.complete-confirm {
+  display: flex;
+  gap: 4px;
+  animation: slideIn 0.2s ease;
+}
+
+.complete-confirm-btn,
+.complete-cancel-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.complete-confirm-btn {
+  color: #10b981;
+}
+
+.complete-confirm-btn:hover {
+  background: #d1fae5;
+}
+
+.complete-cancel-btn {
+  color: #6b7280;
+}
+
+.complete-cancel-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Edit button disabled state */
+.edit-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.edit-btn:disabled:hover {
+  background: transparent;
+}
+
+/* Delete confirmation */
+.delete-confirm {
+  display: flex;
+  gap: 4px;
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.delete-confirm-btn,
+.delete-cancel-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.delete-confirm-btn {
+  color: #dc2626;
+}
+
+.delete-confirm-btn:hover {
+  background: #fee;
+}
+
+.delete-cancel-btn {
+  color: #6b7280;
+}
+
+.delete-cancel-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-pagination {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.completed-task {
+  background: #f0fdf4;
+  border-left: 4px solid #10b981;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.completed-task:hover {
+  background: #dcfce7;
+}
+
+.completed-task-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.completed-task-text {
+  font-size: 16px;
+  color: #059669;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.completed-task-date {
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .todo-container {
+    margin: 20px auto;
+  }
+
+  .header-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .task-actions {
+    flex-wrap: wrap;
+  }
+
+  .duration-input {
+    width: 60px;
+    font-size: 12px;
+  }
+
+  .countdown-display {
+    font-size: 14px;
+    padding: 6px 12px;
+    min-width: 140px;
+  }
+
+  .modal-content {
+    margin: 0 10px;
+  }
+}
 /* 
 //
 // PAGINATION

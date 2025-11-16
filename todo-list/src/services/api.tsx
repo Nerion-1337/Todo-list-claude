@@ -5,6 +5,11 @@ export interface Task {
   id: number;
   text: string;
   completed: boolean;
+  order: number;
+  duration_days: number | null;
+  locked: boolean;
+  locked_at: string | null;
+  deadline: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -12,14 +17,19 @@ export interface Task {
 export interface CreateTaskDTO {
   text: string;
   completed?: boolean;
+  order?: number;
+  duration_days?: number | null;
 }
 
 export interface UpdateTaskDTO {
   text?: string;
   completed?: boolean;
+  order?: number;
+  duration_days?: number | null;
+  locked?: boolean;
 }
 
-// Récupérer toutes les tâches
+// Récupérer toutes les tâches non complétées
 export const getTasks = async (): Promise<Task[]> => {
   try {
     const response = await fetch(API_URL);
@@ -29,6 +39,20 @@ export const getTasks = async (): Promise<Task[]> => {
     return await response.json();
   } catch (error) {
     console.error('Erreur getTasks:', error);
+    throw error;
+  }
+};
+
+// Récupérer toutes les tâches complétées
+export const getCompletedTasks = async (): Promise<Task[]> => {
+  try {
+    const response = await fetch(`${API_URL}/completed`);
+    if (!response.ok) {
+      throw new Error('Erreur lors de la récupération des tâches complétées');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Erreur getCompletedTasks:', error);
     throw error;
   }
 };
@@ -86,6 +110,27 @@ export const updateTask = async (
     return await response.json();
   } catch (error) {
     console.error('Erreur updateTask:', error);
+    throw error;
+  }
+};
+
+// Réorganiser l'ordre des tâches
+export const reorderTasks = async (
+  tasks: Array<{ id: number; order: number }>
+): Promise<void> => {
+  try {
+    const response = await fetch(`${API_URL}/reorder`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tasks }),
+    });
+    if (!response.ok) {
+      throw new Error('Erreur lors de la réorganisation des tâches');
+    }
+  } catch (error) {
+    console.error('Erreur reorderTasks:', error);
     throw error;
   }
 };
