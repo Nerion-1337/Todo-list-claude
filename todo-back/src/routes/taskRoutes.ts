@@ -1,16 +1,16 @@
 // src/routes/taskRoutes.ts
-import { Router } from "express";
+import { Hono } from 'hono';
 import {
   getAllTasks,
+  getCompletedTasks,
   getTaskById,
   createTask,
   updateTask,
-  deleteTask,
-  getCompletedTasks,
-  reorderTasks
-} from "../controllers/taskController";
+  reorderTasks,
+  deleteTask
+} from '../controllers/taskController';
 
-const router = Router();
+const router = new Hono();
 
 // GET /api/tasks - Récupérer toutes les tâches non complétées
 router.get('/', getAllTasks);

@@ -1,40 +1,42 @@
-// src/index.ts
-import helmet from "helmet";
+// DOTENV
 import dotenv from "dotenv";
-import express, { Express } from "express";
-import cors from "cors";
-import { connectDB } from "./config/database";
-import taskRoutes from "./routes/taskRoutes";
-
 dotenv.config();
+// src/index.ts
+import { Hono } from 'hono';
+import { serve } from '@hono/node-server';
+import { cors } from 'hono/cors';
+import { connectDB } from './config/database';
+import taskRoutes from './routes/taskRoutes';
 
-const app: Express = express();
-const PORT = process.env.PORT || 3000;
+const app = new Hono();
+const PORT = process.env.PORT || 3005;
 
 // Middlewares
-app.use(express.json());
-app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use('/*', cors());
 
 // Routes
-app.use("/api/tasks", taskRoutes);
+app.route('/api/tasks', taskRoutes);
 
 // Route de santé
-app.get("/health", (req, res) => {
-  res.json({ status: "OK", message: "API Todo fonctionnelle" });
+app.get('/health', (c) => {
+  return c.json({ status: 'OK', message: 'API Todo fonctionnelle' });
 });
 
 // Démarrage du serveur
 const startServer = async (): Promise<void> => {
   try {
     await connectDB();
-    app.listen(PORT, () => {
-      console.log(`🚀 Serveur démarré sur le port ${PORT}`);
-      console.log(`📍 API disponible sur http://localhost:${PORT}`);
-      console.log(`💚 Health check: http://localhost:${PORT}/health`);
+    
+    serve({
+      fetch: app.fetch,
+      port: Number(PORT),
     });
+    
+    console.log(`🚀 Serveur Hono démarré sur le port ${PORT}`);
+    console.log(`📍 API disponible sur http://localhost:${PORT}`);
+    console.log(`💚 Health check: http://localhost:${PORT}/health`);
   } catch (error) {
-    console.error("❌ Erreur lors du démarrage du serveur:", error);
+    console.error('❌ Erreur lors du démarrage du serveur:', error);
     process.exit(1);
   }
 };
