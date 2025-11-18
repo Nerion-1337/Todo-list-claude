@@ -25,6 +25,7 @@ jobs:
       - name: Create .env file
         run: |
           echo "URL_BACK=${{ secrets.URL_BACK }}" > .env
+          echo "URL_BACK=${{ secrets.ASSETS }}" > .env
 
       - name: Build React app
         run: |
