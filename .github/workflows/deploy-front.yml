@@ -24,8 +24,8 @@ jobs:
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
       - name: Create .env file
         env:
-          URL_BACK: ${{ secrets.URL_BACK }}
-          ASSETS: ${{ secrets.ASSETS }}
+          VITE_URL_BACK: ${{ secrets.URL_BACK }}
+          VITE_ASSTES: ${{ secrets.ASSETS }}
         run: |
           echo "URL_BACK=$URL_BACK" > .env
           echo "URL_ASSETS=$ASSETS" >> .env
