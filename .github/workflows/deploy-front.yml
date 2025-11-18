@@ -1,0 +1,33 @@
+name: Deploy FRONT to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_front:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: todo-list
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_github_todo
+          chmod 600 ~/.ssh/id_github_todo
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Build React app
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy FRONT build to VPS
+        run: |
+          rsync -avz -e "ssh -i ~/.ssh/id_github_todo" build/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/react/todo/

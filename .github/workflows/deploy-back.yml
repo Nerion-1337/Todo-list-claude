@@ -1,0 +1,38 @@
+name: Deploy BACK to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_back:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: todo-back
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_github_todo
+          chmod 600 ~/.ssh/id_github_todo
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync BACK to VPS
+        run: |
+          rsync -avz -e "ssh -i ~/.ssh/id_github_todo" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/nodeJs/todo/
+
+      - name: Install & Build on VPS + PM2 restart
+        run: |
+          ssh -i ~/.ssh/id_github_todo ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd /home/nodeJs/todo
+          npm ci
+          npm run build
+          pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
+          pm2 save
+          EOF
