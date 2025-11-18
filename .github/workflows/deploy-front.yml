@@ -25,10 +25,10 @@ jobs:
       - name: Create .env file
         env:
           VITE_URL_BACK: ${{ secrets.URL_BACK }}
-          VITE_ASSTES: ${{ secrets.ASSETS }}
+          VITE_ASSETS: ${{ secrets.ASSETS }}
         run: |
-          echo "URL_BACK=$URL_BACK" > .env
-          echo "URL_ASSETS=$ASSETS" >> .env
+          echo "VITE_URL_BACK=$VITE_URL_BACK" > .env
+          echo "VITE_ASSETS=$VITE_ASSETS" >> .env
 
       - name: Build React app
         run: |
