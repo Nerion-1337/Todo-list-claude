@@ -1,5 +1,5 @@
 // services/api.ts
-const API_URL = process.env.URL_BACK || 'http://localhost:3005/api/tasks';
+const API_URL = import.meta.env.URL_BACK || 'http://localhost:3005/api/tasks';
 
 export interface Task {
   id: number;
