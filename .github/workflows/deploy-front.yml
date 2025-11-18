@@ -22,6 +22,9 @@ jobs:
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_github_todo
           chmod 600 ~/.ssh/id_github_todo
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+      - name: Create .env file
+        run: |
+          echo "URL_BACK=${{ secrets.URL_BACK }}" > .env
 
       - name: Build React app
         run: |
