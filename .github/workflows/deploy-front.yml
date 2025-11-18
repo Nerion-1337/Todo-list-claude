@@ -23,9 +23,12 @@ jobs:
           chmod 600 ~/.ssh/id_github_todo
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
       - name: Create .env file
+        env:
+          URL_BACK: ${{ secrets.URL_BACK }}
+          ASSETS: ${{ secrets.ASSETS }}
         run: |
-          echo "URL_BACK=${{ secrets.URL_BACK }}" > .env
-          echo "URL_BACK=${{ secrets.ASSETS }}" > .env
+          echo "URL_BACK=$URL_BACK" > .env
+          echo "URL_ASSETS=$ASSETS" >> .env
 
       - name: Build React app
         run: |
