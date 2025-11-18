@@ -28,6 +28,11 @@ jobs:
           npm ci
           npm run build
 
+      - name: List files
+        run: |
+          ls -la
+          ls -la dist  # ou dist selon ton projet
+
       - name: Deploy FRONT build to VPS
         run: |
-          rsync -avz -e "ssh -i ~/.ssh/id_github_todo" build/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/react/todo/
+          rsync -avz -e "ssh -i ~/.ssh/id_github_todo" dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/react/todo/
