@@ -3,11 +3,11 @@ import { Pool } from "pg";
 
 // Configuration du pool PostgreSQL
 export const pool = new Pool({
-  user: process.env.DB_USER || "postgres",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "todo_db",
-  password: process.env.DB_PASSWORD || "root",
-  port: parseInt(process.env.DB_PORT || "5432"),
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST ,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: parseInt(process.env.DB_PORT as string),
 });
 
 // Fonction pour initialiser la base de données
