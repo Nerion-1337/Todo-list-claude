@@ -43,3 +43,4 @@ jobs:
       - name: Deploy FRONT build to VPS
         run: |
           rsync -avz -e "ssh -i ~/.ssh/id_github_todo" dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/react/todo/
+          
