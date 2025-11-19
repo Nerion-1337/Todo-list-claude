@@ -247,6 +247,9 @@ body {
 .task-item {
   cursor: grab;
   position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .task-item:active {
@@ -295,7 +298,8 @@ body {
   align-items: center;
   font-size: 12px;
   color: #718096;
-  margin-left: 12px;
+  width: 100%;
+  justify-content: center;
 }
 
 /* COUNTDOWN DISPLAY - Plus visible et avec secondes */
@@ -316,8 +320,7 @@ body {
 }
 
 @keyframes pulse {
-  0%,
-  100% {
+  0%, 100% {
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
   }
   50% {
@@ -331,13 +334,10 @@ body {
 }
 
 @keyframes blink {
-  0%,
-  50%,
-  100% {
+  0%, 50%, 100% {
     opacity: 1;
   }
-  25%,
-  75% {
+  25%, 75% {
     opacity: 0.6;
   }
 }
@@ -357,7 +357,7 @@ body {
 }
 
 .countdown-time {
-  font-family: "Courier New", monospace;
+  font-family: 'Courier New', monospace;
   letter-spacing: 1px;
 }
 
@@ -434,6 +434,669 @@ body {
   display: flex;
   gap: 4px;
   animation: slideIn 0.2s ease;
+}
+
+.complete-confirm-btn,
+.complete-cancel-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.complete-confirm-btn {
+  color: #10b981;
+}
+
+.complete-confirm-btn:hover {
+  background: #d1fae5;
+}
+
+.complete-cancel-btn {
+  color: #6b7280;
+}
+
+.complete-cancel-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Edit button disabled state */
+.edit-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.edit-btn:disabled:hover {
+  background: transparent;
+}
+
+/* Delete confirmation */
+.delete-confirm {
+  display: flex;
+  gap: 4px;
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.delete-confirm-btn,
+.delete-cancel-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.delete-confirm-btn {
+  color: #dc2626;
+}
+
+.delete-confirm-btn:hover {
+  background: #fee;
+}
+
+.delete-cancel-btn {
+  color: #6b7280;
+}
+
+.delete-cancel-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-pagination {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.completed-task {
+  background: #f0fdf4;
+  border-left: 4px solid #10b981;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.completed-task:hover {
+  background: #dcfce7;
+}
+
+.completed-task-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.completed-task-text {
+  font-size: 16px;
+  color: #059669;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.completed-task-date {
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.tasks-list {
+  padding: 20px;
+  min-height: 200px;
+  position: relative;
+  transition: box-shadow 0.3s ease;
+  border-radius: 0 0 16px 16px;
+}
+
+/* Box-shadow sur le côté GAUCHE - Navigation valide (vert) */
+.tasks-list.drag-zone-left-valid {
+  box-shadow: inset 50px 0 80px -30px rgba(16, 185, 129, 0.8);
+  animation: pulseLeftShadow 1s ease-in-out infinite;
+}
+
+/* Box-shadow sur le côté GAUCHE - Navigation invalide (rouge) */
+.tasks-list.drag-zone-left-invalid {
+  box-shadow: inset 50px 0 80px -30px rgba(239, 68, 68, 0.8);
+  animation: shakeLeftShadow 0.6s ease-in-out infinite;
+}
+
+/* Box-shadow sur le côté DROITE - Navigation valide (vert) */
+.tasks-list.drag-zone-right-valid {
+  box-shadow: inset -50px 0 80px -30px rgba(16, 185, 129, 0.8);
+  animation: pulseRightShadow 1s ease-in-out infinite;
+}
+
+/* Box-shadow sur le côté DROITE - Navigation invalide (rouge) */
+.tasks-list.drag-zone-right-invalid {
+  box-shadow: inset -50px 0 80px -30px rgba(239, 68, 68, 0.8);
+  animation: shakeRightShadow 0.6s ease-in-out infinite;
+}
+
+/* Indicateur de flèche - Gauche */
+.tasks-list.drag-zone-left-valid::before,
+.tasks-list.drag-zone-left-invalid::before {
+  content: '';
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 35px solid transparent;
+  border-bottom: 35px solid transparent;
+  opacity: 0.95;
+  z-index: 15;
+  animation: bounceLeft 1.2s ease-in-out infinite;
+}
+
+.tasks-list.drag-zone-left-valid::before {
+  border-right: 45px solid rgba(16, 185, 129, 1);
+  filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.6));
+}
+
+.tasks-list.drag-zone-left-invalid::before {
+  border-right: 45px solid rgba(239, 68, 68, 1);
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.6));
+  animation: shakeArrowX 0.6s ease-in-out infinite;
+}
+
+/* Indicateur de flèche - Droite */
+.tasks-list.drag-zone-right-valid::after,
+.tasks-list.drag-zone-right-invalid::after {
+  content: '';
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 35px solid transparent;
+  border-bottom: 35px solid transparent;
+  opacity: 0.95;
+  z-index: 15;
+  animation: bounceRight 1.2s ease-in-out infinite;
+}
+
+.tasks-list.drag-zone-right-valid::after {
+  border-left: 45px solid rgba(16, 185, 129, 1);
+  filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.6));
+}
+
+.tasks-list.drag-zone-right-invalid::after {
+  border-left: 45px solid rgba(239, 68, 68, 1);
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.6));
+  animation: shakeArrowX 0.6s ease-in-out infinite;
+}
+
+/* Animations pour box-shadow - Pulse */
+@keyframes pulseLeftShadow {
+  0%, 100% {
+    box-shadow: inset 50px 0 80px -30px rgba(16, 185, 129, 0.8);
+  }
+  50% {
+    box-shadow: inset 70px 0 100px -30px rgba(16, 185, 129, 1);
+  }
+}
+
+@keyframes pulseRightShadow {
+  0%, 100% {
+    box-shadow: inset -50px 0 80px -30px rgba(16, 185, 129, 0.8);
+  }
+  50% {
+    box-shadow: inset -70px 0 100px -30px rgba(16, 185, 129, 1);
+  }
+}
+
+/* Animations pour box-shadow - Shake */
+@keyframes shakeLeftShadow {
+  0%, 100% {
+    box-shadow: inset 50px 0 80px -30px rgba(239, 68, 68, 0.8);
+  }
+  25% {
+    box-shadow: inset 60px 0 90px -30px rgba(239, 68, 68, 1);
+  }
+  75% {
+    box-shadow: inset 40px 0 70px -30px rgba(239, 68, 68, 1);
+  }
+}
+
+@keyframes shakeRightShadow {
+  0%, 100% {
+    box-shadow: inset -50px 0 80px -30px rgba(239, 68, 68, 0.8);
+  }
+  25% {
+    box-shadow: inset -60px 0 90px -30px rgba(239, 68, 68, 1);
+  }
+  75% {
+    box-shadow: inset -40px 0 70px -30px rgba(239, 68, 68, 1);
+  }
+}
+
+/* Animations pour les flèches - Bounce */
+@keyframes bounceLeft {
+  0%, 100% {
+    transform: translateY(-50%) translateX(0);
+  }
+  50% {
+    transform: translateY(-50%) translateX(-15px);
+  }
+}
+
+@keyframes bounceRight {
+  0%, 100% {
+    transform: translateY(-50%) translateX(0);
+  }
+  50% {
+    transform: translateY(-50%) translateX(15px);
+  }
+}
+
+/* Animation shake pour flèches invalides */
+@keyframes shakeArrowX {
+  0%, 100% {
+    transform: translateY(-50%) translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-50%) translateX(-8px) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(-50%) translateX(8px) rotate(5deg);
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - SMARTPHONE (max-width: 768px)
+   ========================================== */
+
+@media (max-width: 768px) {
+  /* Body et container */
+  body {
+    padding: 10px;
+  }
+
+  .todo-container {
+    margin: 10px auto;
+    border-radius: 12px;
+  }
+
+  /* Header */
+  .header {
+    padding: 20px 15px;
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .header h1 {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .header-buttons {
+    flex-direction: row;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .add-btn, .completed-btn {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  /* Task list */
+  .tasks-list {
+    padding: 12px;
+    min-height: auto;
+  }
+
+  /* Task item */
+  .task-item {
+    padding: 12px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .task-content {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .drag-handle {
+    font-size: 18px;
+  }
+
+  .task-text {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  /* Countdown display mobile */
+  .countdown-display {
+    font-size: 14px;
+    padding: 6px 12px;
+    min-width: 140px;
+    width: 100%;
+  }
+
+  .countdown-icon {
+    font-size: 16px;
+  }
+
+  .countdown-time {
+    font-size: 13px;
+  }
+
+  /* Task actions mobile */
+  .task-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .duration-input {
+    width: 60px;
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+
+  .lock-btn, .complete-btn, .edit-btn, .delete-btn {
+    font-size: 20px;
+    padding: 8px 10px;
+    min-width: 40px;
+  }
+
+  /* Edit mode mobile */
+  .edit-input {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .edit-actions {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .save-btn, .cancel-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  /* Modal mobile */
+  .modal {
+    padding: 10px;
+  }
+
+  .modal-content {
+    max-height: 90vh;
+    border-radius: 12px;
+  }
+
+  .modal-header {
+    padding: 15px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .modal-header h2 {
+    font-size: 20px;
+  }
+
+  .close-btn {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .modal-body {
+    padding: 15px;
+  }
+
+  /* Completed tasks mobile */
+  .completed-task {
+    padding: 10px;
+  }
+
+  .completed-task-text {
+    font-size: 14px;
+  }
+
+  .completed-task-date {
+    font-size: 12px;
+  }
+
+  /* Pagination mobile */
+  .pagination-container {
+    padding: 15px 10px;
+    gap: 12px;
+  }
+
+  .pagination-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .pagination-input {
+    width: 50px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .pagination-total {
+    font-size: 14px;
+  }
+
+  /* Empty state mobile */
+  .empty-state {
+    padding: 40px 15px;
+  }
+
+  .empty-state p:first-child {
+    font-size: 18px;
+  }
+
+  .empty-state p:last-child {
+    font-size: 13px;
+  }
+
+  /* Error message mobile */
+  .error-message {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  /* Loading mobile */
+  .loading {
+    font-size: 16px;
+    padding: 30px;
+  }
+
+  /* Désactiver le drag sur mobile */
+  .task-item {
+    cursor: default;
+  }
+
+  .drag-handle {
+    cursor: default;
+  }
+
+  /* Ajuster les flèches de navigation */
+  .tasks-list.drag-zone-left-valid::before,
+  .tasks-list.drag-zone-left-invalid::before {
+    left: 10px;
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+  }
+
+  .tasks-list.drag-zone-left-valid::before {
+    border-right: 35px solid rgba(16, 185, 129, 1);
+  }
+
+  .tasks-list.drag-zone-left-invalid::before {
+    border-right: 35px solid rgba(239, 68, 68, 1);
+  }
+
+  .tasks-list.drag-zone-right-valid::after,
+  .tasks-list.drag-zone-right-invalid::after {
+    right: 10px;
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+  }
+
+  .tasks-list.drag-zone-right-valid::after {
+    border-left: 35px solid rgba(16, 185, 129, 1);
+  }
+
+  .tasks-list.drag-zone-right-invalid::after {
+    border-left: 35px solid rgba(239, 68, 68, 1);
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - TRÈS PETIT SMARTPHONE (max-width: 480px)
+   ========================================== */
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 20px;
+  }
+
+  .header-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .add-btn, .completed-btn {
+    width: 100%;
+  }
+
+  .task-actions {
+    gap: 5px;
+  }
+
+  .duration-input {
+    width: 55px;
+    font-size: 12px;
+  }
+
+  .lock-btn, .complete-btn, .edit-btn, .delete-btn {
+    font-size: 18px;
+    padding: 6px 8px;
+    min-width: 36px;
+  }
+
+  .countdown-display {
+    font-size: 12px;
+    padding: 5px 10px;
+    min-width: 120px;
+  }
+
+  .modal-header h2 {
+    font-size: 18px;
+  }
+
+  .pagination-input {
+    width: 45px;
+    font-size: 13px;
+  }
 }
 
 .complete-confirm-btn,
