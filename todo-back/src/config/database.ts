@@ -77,7 +77,7 @@ export const connectDB = async (): Promise<void> => {
     console.log("✅ Connexion à PostgreSQL établie");
 
     // Initialisation des tables
-    await initDB();
+    //await initDB();
   } catch (error) {
     console.error("❌ Erreur de connexion à PostgreSQL:", error);
     throw error;
