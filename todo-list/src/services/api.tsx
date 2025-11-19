@@ -1,5 +1,5 @@
 // services/api.ts
-const API_URL = 'http://127.0.0.1:4002/todo/api/tasks';
+const API_URL = import.meta.env.VITE_API_URL;
 
 export interface Task {
   id: number;
