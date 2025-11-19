@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3005;
 app.use('/*', cors());
 
 // Routes
-app.route('/api/tasks', taskRoutes);
+app.route('/todo/api/tasks', taskRoutes);
 
 // Route de santé
 app.get('/health', (c) => {
