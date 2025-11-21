@@ -54,39 +54,140 @@ function App() {
 
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // ========== SWIPE HORIZONTAL ==========
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [swipeStartX, setSwipeStartX] = useState<number>(0);
+  const [swipeCurrentX, setSwipeCurrentX] = useState<number>(0);
+  const [swipeTranslateX, setSwipeTranslateX] = useState<number>(0);
+  const [swipeEdgeGlow, setSwipeEdgeGlow] = useState<{ left: number; right: number }>({ left: 0, right: 0 });
+  const tasksListRef = useRef<HTMLDivElement>(null);
 
-useEffect(() => {
-  const handleResize = () => {
-    const newTasksPerPage = calculateTasksPerPage();
-    setTasksPerPage(newTasksPerPage);
+  // Handlers pour le swipe
+  const handleSwipeStart = (clientX: number): void => {
+    // Ne pas activer le swipe si on est en train de drag une tâche ou d'éditer
+    if (draggedTask || editingId !== null) return;
     
-    // Ajuster la page actuelle si nécessaire après le redimensionnement
-    const newTotalPages = Math.ceil(tasks.length / newTasksPerPage);
-    if (currentPage > newTotalPages && newTotalPages > 0) {
-      setCurrentPage(newTotalPages);
+    setIsDragging(true);
+    setSwipeStartX(clientX);
+    setSwipeCurrentX(clientX);
+  };
+
+  const handleSwipeMove = (clientX: number): void => {
+    if (!isDragging || draggedTask) return;
+    
+    setSwipeCurrentX(clientX);
+    const diff = clientX - swipeStartX;
+    const containerWidth = tasksListRef.current?.offsetWidth || 300;
+    const maxTranslate = containerWidth * 0.4;
+    
+    // Limiter la translation avec résistance aux bords
+    let newTranslate = diff;
+    if ((currentPage === 1 && diff > 0) || (currentPage === totalPages && diff < 0)) {
+      newTranslate = diff * 0.3; // Résistance aux bords
+    }
+    newTranslate = Math.max(-maxTranslate, Math.min(maxTranslate, newTranslate));
+    
+    setSwipeTranslateX(newTranslate);
+    
+    // Mettre à jour le glow des bords selon la direction
+    if (diff > 20 && currentPage > 1) {
+      setSwipeEdgeGlow({ left: Math.min(diff / 100, 1), right: 0 });
+    } else if (diff < -20 && currentPage < totalPages) {
+      setSwipeEdgeGlow({ left: 0, right: Math.min(Math.abs(diff) / 100, 1) });
+    } else if (diff > 20 && currentPage === 1) {
+      setSwipeEdgeGlow({ left: Math.min(diff / 150, 0.5), right: 0 });
+    } else if (diff < -20 && currentPage === totalPages) {
+      setSwipeEdgeGlow({ left: 0, right: Math.min(Math.abs(diff) / 150, 0.5) });
+    } else {
+      setSwipeEdgeGlow({ left: 0, right: 0 });
     }
   };
 
-  // Calcul initial au montage
-  handleResize();
-
-  // Écouter les changements de taille de fenêtre
-  window.addEventListener('resize', handleResize);
-  
-  // Nettoyer l'écouteur au démontage
-  return () => {
-    window.removeEventListener('resize', handleResize);
+  const handleSwipeEnd = (): void => {
+    if (!isDragging) return;
+    
+    const diff = swipeCurrentX - swipeStartX;
+    const threshold = 80;
+    
+    if (diff > threshold && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      flashSwipeEdge('left');
+    } else if (diff < -threshold && currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      flashSwipeEdge('right');
+    }
+    
+    setIsDragging(false);
+    setSwipeTranslateX(0);
+    setSwipeEdgeGlow({ left: 0, right: 0 });
   };
-}, [tasks.length, currentPage]);
 
-  // Charger les tâches au montage du composant
+  const flashSwipeEdge = (side: 'left' | 'right'): void => {
+    setSwipeEdgeGlow(side === 'left' ? { left: 1, right: 0 } : { left: 0, right: 1 });
+    setTimeout(() => setSwipeEdgeGlow({ left: 0, right: 0 }), 300);
+  };
+
+  // Event handlers pour souris
+  const handleMouseDown = (e: React.MouseEvent): void => {
+    // Ignorer si on clique sur un élément interactif
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input, .task-item')) return;
+    handleSwipeStart(e.clientX);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent): void => {
+    handleSwipeMove(e.clientX);
+  };
+
+  const handleMouseUp = (): void => {
+    handleSwipeEnd();
+  };
+
+  const handleMouseLeave = (): void => {
+    if (isDragging) handleSwipeEnd();
+  };
+
+  // Event handlers pour touch
+  const handleTouchStart = (e: React.TouchEvent): void => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input')) return;
+    handleSwipeStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent): void => {
+    handleSwipeMove(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (): void => {
+    handleSwipeEnd();
+  };
+  // ========== FIN SWIPE HORIZONTAL ==========
+
+  useEffect(() => {
+    const handleResize = () => {
+      const newTasksPerPage = calculateTasksPerPage();
+      setTasksPerPage(newTasksPerPage);
+      
+      const newTotalPages = Math.ceil(tasks.length / newTasksPerPage);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [tasks.length, currentPage]);
+
   useEffect(() => {
     loadTasks();
     
-    // Mise à jour du countdown chaque seconde pour les tâches lockées
     const interval = setInterval(() => {
-      setTasks(prev => [...prev]); // Force re-render pour mettre à jour le countdown
-    }, 1000); // Chaque seconde maintenant
+      setTasks(prev => [...prev]);
+    }, 1000);
     
     return () => clearInterval(interval);
   }, []);
@@ -109,7 +210,7 @@ useEffect(() => {
     try {
       const data = await api.getCompletedTasks();
       setCompletedTasks(data);
-      setCompletedPage(1); // Reset à la page 1 à chaque ouverture
+      setCompletedPage(1);
       setShowCompleted(true);
     } catch (err) {
       setError('Erreur lors du chargement des tâches complétées');
@@ -139,7 +240,6 @@ useEffect(() => {
   const toggleComplete = async (id: number): Promise<void> => {
     if (editingId === id) return;
     
-    // Afficher la confirmation
     if (completeConfirmId !== id) {
       setCompleteConfirmId(id);
       return;
@@ -169,13 +269,11 @@ useEffect(() => {
   };
 
   const deleteTaskHandler = async (id: number): Promise<void> => {
-    // Afficher la confirmation
     if (deleteConfirmId !== id) {
       setDeleteConfirmId(id);
       return;
     }
 
-    // Supprimer la tâche
     try {
       await api.deleteTask(id);
       const newTasks = tasks.filter((task) => task.id !== id);
@@ -203,7 +301,6 @@ useEffect(() => {
   };
 
   const startEdit = (id: number, text: string): void => {
-    // Empêcher l'édition si la tâche est verrouillée
     const task = tasks.find(t => t.id === id);
     if (task?.locked) {
       setError('Impossible d\'éditer une tâche verrouillée');
@@ -246,7 +343,6 @@ useEffect(() => {
     }
   };
 
-  // Mise à jour de la durée
   const updateDuration = async (id: number, days: number | null): Promise<void> => {
     try {
       const updatedTask = await api.updateTask(id, { duration_days: days });
@@ -257,12 +353,10 @@ useEffect(() => {
     }
   };
 
-  // Toggle Lock - Une fois verrouillée, impossible de déverrouiller
   const toggleLock = async (id: number): Promise<void> => {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
     
-    // Si déjà verrouillée, ne rien faire
     if (task.locked) {
       setError('Impossible de déverrouiller une tâche verrouillée');
       setTimeout(() => setError(''), 3000);
@@ -289,7 +383,6 @@ useEffect(() => {
 
   // Drag and Drop handlers
   const handleDragStart = (e: React.DragEvent, task: Task): void => {
-    // Empêcher le drag des tâches verrouillées
     if (task.locked) {
       e.preventDefault();
       return;
@@ -297,15 +390,12 @@ useEffect(() => {
     
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
-    
-    // Ajouter une classe au body pour afficher les zones de navigation
     document.body.classList.add('dragging');
   };
 
   const handleDragOver = (e: React.DragEvent, index: number): void => {
     e.preventDefault();
     
-    // Ne pas permettre de drop sur une tâche verrouillée
     const targetTask = currentTasks[index];
     if (targetTask?.locked || !draggedTask) {
       return;
@@ -314,33 +404,27 @@ useEffect(() => {
     setDragOverIndex(index);
   };
 
-// Remplace ta fonction handleDragEnd par celle-ci :
-
-const handleDragEnd = (): void => {
-  setDraggedTask(null);
-  setDragOverIndex(null);
-  setDragEdgeZone(null);
-  
-  // Nettoyer le timer
-  if (dragEdgeTimer) {
-    clearTimeout(dragEdgeTimer);
-    setDragEdgeTimer(null);
-  }
-  
-  // Nettoyer l'intervalle
-  if (scrollIntervalRef.current) {
-    clearInterval(scrollIntervalRef.current);
-    scrollIntervalRef.current = null;
-  }
-  
-  // Retirer la classe du body
-  document.body.classList.remove('dragging');
-};
+  const handleDragEnd = (): void => {
+    setDraggedTask(null);
+    setDragOverIndex(null);
+    setDragEdgeZone(null);
+    
+    if (dragEdgeTimer) {
+      clearTimeout(dragEdgeTimer);
+      setDragEdgeTimer(null);
+    }
+    
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+    
+    document.body.classList.remove('dragging');
+  };
 
   const handleDrop = async (e: React.DragEvent, dropIndex: number): Promise<void> => {
     e.preventDefault();
     
-    // Nettoyer le timer si existant
     if (dragEdgeTimer) {
       clearTimeout(dragEdgeTimer);
       setDragEdgeTimer(null);
@@ -348,7 +432,6 @@ const handleDragEnd = (): void => {
     
     if (!draggedTask) return;
 
-    // Ne pas permettre de drop sur une tâche verrouillée
     const targetTask = currentTasks[dropIndex];
     if (targetTask?.locked) {
       setDraggedTask(null);
@@ -363,33 +446,22 @@ const handleDragEnd = (): void => {
       return;
     }
 
-    // Créer une copie complète du tableau de toutes les tâches
     const allTasksCopy = [...tasks];
-    
-    // Trouver les index globaux
     const globalDragIndex = allTasksCopy.findIndex(t => t.id === draggedTask.id);
     const globalDropIndex = startIndex + dropIndex;
 
-    // Retirer la tâche de sa position actuelle
     const [movedTask] = allTasksCopy.splice(globalDragIndex, 1);
-    
-    // Insérer à la nouvelle position
     allTasksCopy.splice(globalDropIndex, 0, movedTask);
 
-    // Réassigner les orders
     const reorderedAllTasks = allTasksCopy.map((task, idx) => ({
       ...task,
       order: idx,
     }));
 
-    // Mettre à jour immédiatement l'affichage local
     setTasks(reorderedAllTasks);
-
-    // Reset du drag state
     setDraggedTask(null);
     setDragOverIndex(null);
 
-    // Envoyer au serveur
     try {
       await api.reorderTasks(reorderedAllTasks.map(t => ({ id: t.id, order: t.order })));
     } catch (err) {
@@ -399,102 +471,83 @@ const handleDragEnd = (): void => {
     }
   };
 
-  // Gestion du drag près des bords pour changer de page (HORIZONTAL : gauche/droite)
-  // Avec défilement continu si on reste dans la zone
-const handleDragInTasksList = (e: React.DragEvent<HTMLDivElement>): void => {
-  if (!draggedTask || totalPages <= 1) {
-    setDragEdgeZone(null);
-    return;
-  }
+  const handleDragInTasksList = (e: React.DragEvent<HTMLDivElement>): void => {
+    if (!draggedTask || totalPages <= 1) {
+      setDragEdgeZone(null);
+      return;
+    }
 
-  const tasksListElement = e.currentTarget;
-  const rect = tasksListElement.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const edgeThreshold = 120;
+    const tasksListElement = e.currentTarget;
+    const rect = tasksListElement.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const edgeThreshold = 120;
 
-  // Zone de GAUCHE - Page précédente avec scroll continu
-  if (mouseX < edgeThreshold) {
-    if (currentPage > 1) {
-      setDragEdgeZone('left');
-      
-      // Démarrer l'intervalle seulement s'il n'existe pas
-      if (!scrollIntervalRef.current && !dragEdgeTimer) {
-        // Premier changement après 1 seconde
-        const initialTimer = setTimeout(() => {
-          setCurrentPage(prev => Math.max(1, prev - 1));
-          
-          // Puis continuer avec un intervalle
-          scrollIntervalRef.current = setInterval(() => {
-            setCurrentPage(prev => {
-              const newPage = Math.max(1, prev - 1);
-              
-              // Arrêter si on atteint la première page
-              if (newPage === 1 && scrollIntervalRef.current) {
-                clearInterval(scrollIntervalRef.current);
-                scrollIntervalRef.current = null;
-              }
-              
-              return newPage;
-            });
-          }, 1000);
-        }, 1000);
+    if (mouseX < edgeThreshold) {
+      if (currentPage > 1) {
+        setDragEdgeZone('left');
         
-        setDragEdgeTimer(initialTimer);
-      }
-    } else {
-      setDragEdgeZone('left');
-    }
-  }
-  // Zone de DROITE - Page suivante avec scroll continu
-  else if (mouseX > rect.width - edgeThreshold) {
-    if (currentPage < totalPages) {
-      setDragEdgeZone('right');
-      
-      // Démarrer l'intervalle seulement s'il n'existe pas
-      if (!scrollIntervalRef.current && !dragEdgeTimer) {
-        // Premier changement après 1 seconde
-        const initialTimer = setTimeout(() => {
-          setCurrentPage(prev => Math.min(totalPages, prev + 1));
-          
-          // Puis continuer avec un intervalle
-          scrollIntervalRef.current = setInterval(() => {
-            setCurrentPage(prev => {
-              const newPage = Math.min(totalPages, prev + 1);
-              
-              // Arrêter si on atteint la dernière page
-              if (newPage === totalPages && scrollIntervalRef.current) {
-                clearInterval(scrollIntervalRef.current);
-                scrollIntervalRef.current = null;
-              }
-              
-              return newPage;
-            });
+        if (!scrollIntervalRef.current && !dragEdgeTimer) {
+          const initialTimer = setTimeout(() => {
+            setCurrentPage(prev => Math.max(1, prev - 1));
+            
+            scrollIntervalRef.current = setInterval(() => {
+              setCurrentPage(prev => {
+                const newPage = Math.max(1, prev - 1);
+                if (newPage === 1 && scrollIntervalRef.current) {
+                  clearInterval(scrollIntervalRef.current);
+                  scrollIntervalRef.current = null;
+                }
+                return newPage;
+              });
+            }, 1000);
           }, 1000);
-        }, 1000);
-        
-        setDragEdgeTimer(initialTimer);
+          
+          setDragEdgeTimer(initialTimer);
+        }
+      } else {
+        setDragEdgeZone('left');
       }
-    } else {
-      setDragEdgeZone('right');
     }
-  }
-  // Zone centrale - ARRÊT IMMÉDIAT
-  else {
-    setDragEdgeZone(null);
-    
-    // Nettoyer le timer initial
-    if (dragEdgeTimer) {
-      clearTimeout(dragEdgeTimer);
-      setDragEdgeTimer(null);
+    else if (mouseX > rect.width - edgeThreshold) {
+      if (currentPage < totalPages) {
+        setDragEdgeZone('right');
+        
+        if (!scrollIntervalRef.current && !dragEdgeTimer) {
+          const initialTimer = setTimeout(() => {
+            setCurrentPage(prev => Math.min(totalPages, prev + 1));
+            
+            scrollIntervalRef.current = setInterval(() => {
+              setCurrentPage(prev => {
+                const newPage = Math.min(totalPages, prev + 1);
+                if (newPage === totalPages && scrollIntervalRef.current) {
+                  clearInterval(scrollIntervalRef.current);
+                  scrollIntervalRef.current = null;
+                }
+                return newPage;
+              });
+            }, 1000);
+          }, 1000);
+          
+          setDragEdgeTimer(initialTimer);
+        }
+      } else {
+        setDragEdgeZone('right');
+      }
     }
-    
-    // Nettoyer l'intervalle
-    if (scrollIntervalRef.current) {
-      clearInterval(scrollIntervalRef.current);
-      scrollIntervalRef.current = null;
+    else {
+      setDragEdgeZone(null);
+      
+      if (dragEdgeTimer) {
+        clearTimeout(dragEdgeTimer);
+        setDragEdgeTimer(null);
+      }
+      
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
+      }
     }
-  }
-};
+  };
 
   return (
     <>
@@ -511,164 +564,222 @@ const handleDragInTasksList = (e: React.DragEvent<HTMLDivElement>): void => {
           </div>
         </div>
 
+        {/* Indicateur de page pour le swipe */}
+        {totalPages > 1 && (
+          <div className="swipe-page-indicator">
+            {Array.from({ length: totalPages }, (_, idx) => (
+              <span
+                key={idx}
+                className={`swipe-dot ${idx + 1 === currentPage ? 'active' : ''}`}
+                onClick={() => handlePageChange(idx + 1)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Conteneur swipeable */}
         <div 
-          className={`tasks-list ${dragEdgeZone === 'left' ? (currentPage > 1 ? 'drag-zone-left-valid' : 'drag-zone-left-invalid') : ''} ${dragEdgeZone === 'right' ? (currentPage < totalPages ? 'drag-zone-right-valid' : 'drag-zone-right-invalid') : ''}`}
-          onDragOver={handleDragInTasksList}
+          ref={tasksListRef}
+          className={`tasks-list-wrapper ${isDragging ? 'swiping' : ''}`}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ cursor: isDragging ? 'grabbing' : (totalPages > 1 ? 'grab' : 'default') }}
         >
-          {error && <div className="error-message">{error}</div>}
+          {/* Edge Glows pour le swipe - Blanc (valide) / Bordeaux (invalide) */}
+          <div
+            className="swipe-edge-glow left"
+            style={{
+              opacity: swipeEdgeGlow.left,
+              background: currentPage > 1 
+                ? 'linear-gradient(to right, rgba(255, 255, 255, 0.9), transparent)'
+                : 'linear-gradient(to right, rgba(128, 0, 32, 0.8), transparent)'
+            }}
+          />
+          <div
+            className="swipe-edge-glow right"
+            style={{
+              opacity: swipeEdgeGlow.right,
+              background: currentPage < totalPages
+                ? 'linear-gradient(to left, rgba(255, 255, 255, 0.9), transparent)'
+                : 'linear-gradient(to left, rgba(128, 0, 32, 0.8), transparent)'
+            }}
+          />
 
-          {loading ? (
-            <div className="loading">Chargement des tâches...</div>
-          ) : (
-            <>
-              {currentTasks.map((task: Task, index: number) => {
-                const remainingTime = task.locked && task.deadline ? getRemainingTime(task.deadline) : null;
-                
-                return (
-                  <div 
-                    key={task.id} 
-                    className={`task-item ${task.locked ? 'locked' : ''} ${dragOverIndex === index && !task.locked ? 'drag-over' : ''}`}
-                    draggable={editingId !== task.id && !task.locked}
-                    onDragStart={(e) => handleDragStart(e, task)}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDragEnd={handleDragEnd}
-                    onDrop={(e) => handleDrop(e, index)}
-                  >
-                    {editingId === task.id ? (
-                      <div className="edit-mode">
-                        <input
-                          type="text"
-                          value={editText}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            setEditText(e.target.value)
-                          }
-                          onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                            e.key === 'Enter' && saveEdit(task.id)
-                          }
-                          autoFocus
-                          className="edit-input"
-                        />
-                        <div className="edit-actions">
-                          <button onClick={() => saveEdit(task.id)} className="save-btn">
-                            Enregistrer
-                          </button>
-                          <button onClick={cancelEdit} className="cancel-btn">
-                            Annuler
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="task-content">
-                          <span className={`drag-handle ${task.locked ? 'disabled' : ''}`}>
-                            {task.locked ? '🔒' : '⋮⋮'}
-                          </span>
-                          <span className="task-text">{task.text}</span>
-                        </div>
-                        
-                        {task.locked && remainingTime && (
-                          <div className={`countdown-display ${remainingTime.isExpired ? 'expired' : ''}`}>
-                            <span className="countdown-icon">⏱️</span>
-                            <span className="countdown-time">{remainingTime.display}</span>
-                          </div>
-                        )}
+          <div 
+            className={`tasks-list ${dragEdgeZone === 'left' ? (currentPage > 1 ? 'drag-zone-left-valid' : 'drag-zone-left-invalid') : ''} ${dragEdgeZone === 'right' ? (currentPage < totalPages ? 'drag-zone-right-valid' : 'drag-zone-right-invalid') : ''}`}
+            onDragOver={handleDragInTasksList}
+            style={{ 
+              transform: `translateX(${swipeTranslateX}px)`,
+              transition: isDragging ? 'none' : 'transform 0.3s ease'
+            }}
+          >
+            {error && <div className="error-message">{error}</div>}
 
-                        <div className="task-actions">
+            {loading ? (
+              <div className="loading">Chargement des tâches...</div>
+            ) : (
+              <>
+                {currentTasks.map((task: Task, index: number) => {
+                  const remainingTime = task.locked && task.deadline ? getRemainingTime(task.deadline) : null;
+                  
+                  return (
+                    <div 
+                      key={task.id} 
+                      className={`task-item ${task.locked ? 'locked' : ''} ${dragOverIndex === index && !task.locked ? 'drag-over' : ''}`}
+                      draggable={editingId !== task.id && !task.locked}
+                      onDragStart={(e) => handleDragStart(e, task)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      onDrop={(e) => handleDrop(e, index)}
+                    >
+                      {editingId === task.id ? (
+                        <div className="edit-mode">
                           <input
-                            type="number"
-                            className="duration-input"
-                            placeholder="Jours"
-                            value={task.duration_days || ''}
-                            onChange={(e) => updateDuration(task.id, e.target.value ? parseInt(e.target.value) : null)}
-                            disabled={task.locked}
-                            min="1"
+                            type="text"
+                            value={editText}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                              setEditText(e.target.value)
+                            }
+                            onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                              e.key === 'Enter' && saveEdit(task.id)
+                            }
+                            autoFocus
+                            className="edit-input"
                           />
-                          <button
-                            className={`lock-btn ${task.locked ? 'locked' : ''}`}
-                            onClick={() => toggleLock(task.id)}
-                            title={task.locked ? 'Déverrouiller' : 'Verrouiller'}
-                          >
-                            {task.locked ? '🔒' : '🔓'}
-                          </button>
+                          <div className="edit-actions">
+                            <button onClick={() => saveEdit(task.id)} className="save-btn">
+                              Enregistrer
+                            </button>
+                            <button onClick={cancelEdit} className="cancel-btn">
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="task-content">
+                            <span className={`drag-handle ${task.locked ? 'disabled' : ''}`}>
+                              {task.locked ? '🔒' : '⋮⋮'}
+                            </span>
+                            <span className="task-text">{task.text}</span>
+                          </div>
                           
-                          {completeConfirmId === task.id ? (
-                            <div className="complete-confirm">
-                              <button
-                                onClick={() => toggleComplete(task.id)}
-                                className="complete-confirm-btn"
-                                title="Confirmer"
+                          {task.locked && remainingTime && (
+                            <div className={`countdown-display ${remainingTime.isExpired ? 'expired' : ''}`}>
+                              <span className="countdown-icon">⏱️</span>
+                              <span className="countdown-time">{remainingTime.display}</span>
+                            </div>
+                          )}
+
+                          <div className="task-actions">
+                            <input
+                              type="number"
+                              className="duration-input"
+                              placeholder="Jours"
+                              value={task.duration_days || ''}
+                              onChange={(e) => updateDuration(task.id, e.target.value ? parseInt(e.target.value) : null)}
+                              disabled={task.locked}
+                              min="1"
+                            />
+                            <button
+                              className={`lock-btn ${task.locked ? 'locked' : ''}`}
+                              onClick={() => toggleLock(task.id)}
+                              title={task.locked ? 'Déverrouiller' : 'Verrouiller'}
+                            >
+                              {task.locked ? '🔒' : '🔓'}
+                            </button>
+                            
+                            {completeConfirmId === task.id ? (
+                              <div className="complete-confirm">
+                                <button
+                                  onClick={() => toggleComplete(task.id)}
+                                  className="complete-confirm-btn"
+                                  title="Confirmer"
+                                >
+                                  ✓
+                                </button>
+                                <button
+                                  onClick={cancelComplete}
+                                  className="complete-cancel-btn"
+                                  title="Annuler"
+                                >
+                                  ✗
+                                </button>
+                              </div>
+                            ) : (
+                              <button 
+                                className="complete-btn" 
+                                onClick={() => toggleComplete(task.id)} 
+                                title="Terminer"
                               >
                                 ✓
                               </button>
-                              <button
-                                onClick={cancelComplete}
-                                className="complete-cancel-btn"
-                                title="Annuler"
-                              >
-                                ✗
-                              </button>
-                            </div>
-                          ) : (
-                            <button 
-                              className="complete-btn" 
-                              onClick={() => toggleComplete(task.id)} 
-                              title="Terminer"
+                            )}
+                            
+                            <button
+                              onClick={() => startEdit(task.id, task.text)}
+                              className="edit-btn"
+                              title="Éditer"
+                              disabled={task.locked}
                             >
-                              ✓
+                              ✏️
                             </button>
-                          )}
-                          
-                          <button
-                            onClick={() => startEdit(task.id, task.text)}
-                            className="edit-btn"
-                            title="Éditer"
-                            disabled={task.locked}
-                          >
-                            ✏️
-                          </button>
-                          
-                          {deleteConfirmId === task.id ? (
-                            <div className="delete-confirm">
+                            
+                            {deleteConfirmId === task.id ? (
+                              <div className="delete-confirm">
+                                <button
+                                  onClick={() => deleteTaskHandler(task.id)}
+                                  className="delete-confirm-btn"
+                                  title="Confirmer"
+                                >
+                                  ✓
+                                </button>
+                                <button
+                                  onClick={cancelDelete}
+                                  className="delete-cancel-btn"
+                                  title="Annuler"
+                                >
+                                  ✗
+                                </button>
+                              </div>
+                            ) : (
                               <button
                                 onClick={() => deleteTaskHandler(task.id)}
-                                className="delete-confirm-btn"
-                                title="Confirmer"
+                                className="delete-btn"
+                                title="Supprimer"
                               >
-                                ✓
+                                🗑️
                               </button>
-                              <button
-                                onClick={cancelDelete}
-                                className="delete-cancel-btn"
-                                title="Annuler"
-                              >
-                                ✗
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => deleteTaskHandler(task.id)}
-                              className="delete-btn"
-                              title="Supprimer"
-                            >
-                              🗑️
-                            </button>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
 
-              {tasks.length === 0 && !loading && (
-                <div className="empty-state">
-                  <p>Aucune tâche pour le moment</p>
-                  <p>Cliquez sur le bouton ci-dessus pour ajouter une tâche</p>
-                </div>
-              )}
-            </>
-          )}
+                {tasks.length === 0 && !loading && (
+                  <div className="empty-state">
+                    <p>Aucune tâche pour le moment</p>
+                    <p>Cliquez sur le bouton ci-dessus pour ajouter une tâche</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
+
+        {/* Hint pour le swipe */}
+        {totalPages > 1 && (
+          <div className="swipe-hint">
+            ← Glissez pour changer de page →
+          </div>
+        )}
 
         {tasks.length > 0 && !loading && totalPages > 1 && (
           <Pagination

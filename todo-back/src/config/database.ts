@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 // src/config/database.ts
 import { Pool } from "pg";
 
@@ -7,7 +9,7 @@ export const pool = new Pool({
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: parseInt(process.env.DB_PORT as string),
+  port: Number(process.env.DB_PORT),
 });
 
 // Fonction pour initialiser la base de données
@@ -27,44 +29,47 @@ export const initDB = async (): Promise<void> => {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('✅ Table tasks créée ou déjà existante');
-    
+    console.log("✅ Table tasks créée ou déjà existante");
+
     // Vérifier si les colonnes existent déjà, sinon les ajouter
     const checkColumns = await pool.query(`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'tasks'
     `);
-    
-    const existingColumns = checkColumns.rows.map(row => row.column_name);
-    
-    if (!existingColumns.includes('order')) {
-      await pool.query('ALTER TABLE tasks ADD COLUMN "order" INTEGER NOT NULL DEFAULT 0');
+
+    const existingColumns = checkColumns.rows.map((row) => row.column_name);
+
+    if (!existingColumns.includes("order")) {
+      await pool.query(
+        'ALTER TABLE tasks ADD COLUMN "order" INTEGER NOT NULL DEFAULT 0'
+      );
       console.log('✅ Colonne "order" ajoutée');
     }
-    
-    if (!existingColumns.includes('duration_days')) {
-      await pool.query('ALTER TABLE tasks ADD COLUMN duration_days INTEGER');
-      console.log('✅ Colonne duration_days ajoutée');
+
+    if (!existingColumns.includes("duration_days")) {
+      await pool.query("ALTER TABLE tasks ADD COLUMN duration_days INTEGER");
+      console.log("✅ Colonne duration_days ajoutée");
     }
-    
-    if (!existingColumns.includes('locked')) {
-      await pool.query('ALTER TABLE tasks ADD COLUMN locked BOOLEAN DEFAULT FALSE');
-      console.log('✅ Colonne locked ajoutée');
+
+    if (!existingColumns.includes("locked")) {
+      await pool.query(
+        "ALTER TABLE tasks ADD COLUMN locked BOOLEAN DEFAULT FALSE"
+      );
+      console.log("✅ Colonne locked ajoutée");
     }
-    
-    if (!existingColumns.includes('locked_at')) {
-      await pool.query('ALTER TABLE tasks ADD COLUMN locked_at TIMESTAMP');
-      console.log('✅ Colonne locked_at ajoutée');
+
+    if (!existingColumns.includes("locked_at")) {
+      await pool.query("ALTER TABLE tasks ADD COLUMN locked_at TIMESTAMP");
+      console.log("✅ Colonne locked_at ajoutée");
     }
-    
-    if (!existingColumns.includes('deadline')) {
-      await pool.query('ALTER TABLE tasks ADD COLUMN deadline TIMESTAMP');
-      console.log('✅ Colonne deadline ajoutée');
+
+    if (!existingColumns.includes("deadline")) {
+      await pool.query("ALTER TABLE tasks ADD COLUMN deadline TIMESTAMP");
+      console.log("✅ Colonne deadline ajoutée");
     }
-    
   } catch (error) {
-    console.error('❌ Erreur lors de la création de la table:', error);
+    console.error("❌ Erreur lors de la création de la table:", error);
     throw error;
   }
 };
