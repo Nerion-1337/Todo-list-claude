@@ -4,6 +4,7 @@ Langage solicité:
 
 - React - Vite
 - Node.js
+- Hono
 - TypeScript
 - Postgres
 
@@ -11,6 +12,18 @@ Langage solicité:
 # Objectif
 
 - Test entretien to-do list avec claude ia
+
+# Fonctionnalité
+
+- Ajouter nouvelle tâche
+- Editer tâche
+- Supprimer & valider avec confirmation tâche
+- Definir durée tâche
+- Verrouiller tâche & demarre timer
+- Déplacer une tache en la selectionnant
+- Changer de page une tache en glissant vers un côté
+- Changer de page avec button, input (renter numero de page), scroll sourie/pouce (tactile/mobile)
+- Afficher tâche complété (par fin de timer ou bouton validation)
 
 
 # Executer
