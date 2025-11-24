@@ -6,6 +6,7 @@ Langage solicité:
 - Node.js
 - Hono
 - TypeScript
+- Tailwind
 - Postgres
 
 
@@ -24,6 +25,7 @@ Langage solicité:
 - Changer de page une tache en glissant vers un côté
 - Changer de page avec button, input (renter numero de page), scroll sourie/pouce (tactile/mobile)
 - Afficher tâche complété (par fin de timer ou bouton validation)
+- Nombre de tâche adapter à la taille de l'écran
 
 
 # Executer
